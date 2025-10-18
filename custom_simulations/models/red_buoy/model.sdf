@@ -1,0 +1,33 @@
+<?xml version="1.0" ?>
+<sdf version="1.6">
+    <model name="red_buoy">
+        <link name="link">
+            <inertial>
+                <pose>0 0 0 0 0 0</pose>
+                <mass>20</mass>
+                <inertia>
+                    <ixx>2.316</ixx>
+                    <ixy>0</ixy>
+                    <ixz>0</ixz>
+                    <iyy>2.316</iyy>
+                    <iyz>0</iyz>
+                    <izz>0.225</izz>
+                </inertia>
+            </inertial>
+            <collision name="collision">
+                <geometry>
+                    <mesh>
+                        <uri>meshes/red_buoy.obj</uri>
+                    </mesh>
+                </geometry>
+            </collision>
+            <visual name="visual">
+                <geometry>
+                    <mesh>
+                        <uri>meshes/red_buoy.obj</uri>
+                    </mesh>
+                </geometry>
+            </visual>
+        </link>
+    </model>
+</sdf>
