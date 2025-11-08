@@ -1,4 +1,6 @@
 from setuptools import setup
+import os
+from glob import glob
 
 package_name = 'galaxsea26'
 
@@ -9,6 +11,16 @@ setup(
     data_files=[
         ('share/ament_index/resource_index/packages', ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+        (os.path.join('share', package_name, 'launch'), glob(os.path.join('launch', '*launch.[pxy][yma]*'))),
+        ('share/' + package_name + '/sensors/urdf', [
+            'sensors/urdf/zed2_camera.xacro',
+            'sensors/urdf/wamv_with_zed2.xacro',
+            'sensors/urdf/wamv_with_zed2.sdf',
+        ]),
+        # Meshes
+        # ('share/' + package_name + '/meshes', [
+        #     'sensors/meshes/zed2_camera.dae'
+        # ]),
     ],
     install_requires=['setuptools'],
     zip_safe=True,

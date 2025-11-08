@@ -1,0 +1,63 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- ZED2 Camera Macro -->
+  <xacro:macro name="zed2_camera" params="parent_link xyz:='0 0 0' rpy:='0 0 0'">
+
+    <!-- Visual -->
+    <link name="zed2_link">
+      <visual>
+        <geometry>
+          <!-- Replace this mesh with an actual one if available -->
+          <!-- <mesh filename="package://my_robot_sensors/meshes/zed2.dae" scale="1 1 1"/> -->
+        </geometry>
+      </visual>
+      <inertial>
+        <mass value="0.2"/>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <inertia ixx="0.0001" iyy="0.0001" izz="0.0001" ixy="0" ixz="0" iyz="0"/>
+      </inertial>
+    </link>
+
+    <!-- Fixed Joint -->
+    <joint name="zed2_joint" type="fixed">
+      <parent link="${parent_link}"/>
+      <child link="zed2_link"/>
+      <origin xyz="${xyz}" rpy="${rpy}"/>
+    </joint>
+
+    <!-- Gazebo sensor plugin -->
+    <gazebo reference="zed2_link">
+      <sensor name="zed2_depth_camera" type="depth_camera">
+        <update_rate>30</update_rate>
+        <camera>
+          <horizontal_fov>1.3962634</horizontal_fov>
+          <image>
+            <width>1280</width>
+            <height>720</height>
+            <format>R8G8B8</format>
+          </image>
+          <clip>
+            <near>0.1</near>
+            <far>20.0</far>
+          </clip>
+        </camera>
+        <plugin name="zed2_camera_plugin" filename="libgazebo_ros_camera.so">
+          <ros>
+            <namespace>/zed2</namespace>
+          </ros>
+          <camera_name>zed2</camera_name>
+          <frame_name>zed2_link</frame_name>
+        </plugin>
+        <plugin name="zed2_depth_plugin" filename="libgazebo_ros_depth_camera.so">
+          <ros>
+            <namespace>/zed2</namespace>
+          </ros>
+          <camera_name>zed2_depth</camera_name>
+          <frame_name>zed2_link</frame_name>
+        </plugin>
+      </sensor>
+    </gazebo>
+
+  </xacro:macro>
+</robot>
