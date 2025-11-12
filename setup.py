@@ -16,6 +16,7 @@ setup(
             'sensors/urdf/zed2_camera.xacro',
             'sensors/urdf/wamv_with_zed2.xacro',
             'sensors/urdf/wamv_with_zed2.sdf',
+            'sensors/urdf/wamv_with_zed2.urdf',
         ]),
         # Meshes
         # ('share/' + package_name + '/meshes', [
