@@ -21,7 +21,7 @@ setup(
         'console_scripts': [
             'boat_controller = galaxsea26.boat_controller:main',
             'lidar_preprocess = galaxsea26.lidar_preprocess:main',
-            'image_processing = galaxsea2y.image_processing:main',
+            'image_processing = galaxsea26.image_processing:main',
         ],
     },
 )
