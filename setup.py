@@ -1,6 +1,6 @@
 from setuptools import setup
 
-package_name = 'galaxsea26'
+package_name = 'galaxsea'
 
 setup(
     name=package_name,
@@ -19,8 +19,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'boat_controller = galaxsea26.boat_controller:main',
-            'lidar_preprocess = galaxsea26.lidar_preprocess:main',
+            'boat_controller = galaxsea.boat_controller:main',
+            'lidar_preprocess = galaxsea.lidar_preprocess:main',
         ],
     },
 )

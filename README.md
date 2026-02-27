@@ -1,4 +1,4 @@
-# Welcome to GalaxSea's 2026 code base!
+# Welcome to GalaxSea's code base!
 
 Here's a tutorial on how to get this repo set up in your docker container
 
@@ -8,7 +8,7 @@ Here's a tutorial on how to get this repo set up in your docker container
 CD into your workspace source (should be called roboboat_ws/src) and clone this repo
 ```shell
 cd /root/roboboat_ws/src
-git clone https://github.com/RoboSub-UTD/roboboat2025_ros2
+git clone https://github.com/RoboSub-UTD/galaxsea
 ```
 
 # Setup
@@ -44,7 +44,9 @@ Using waxd you can move the boat around the lake
 
 1. Add the path to the custom models and worlds to $GZ_SIM_RESOURCE_PATH
 
-```export GZ_SIM_RESOURCE_PATH="/root/roboboat_ws/src/galaxsea26/custom_simulations/worlds:/root/roboboat_ws/src/galaxsea26/custom_simulations/models:$GZ_SIM_RESOURCE_PATH" ```
+```shell
+export GZ_SIM_RESOURCE_PATH="/root/roboboat_ws/src/galaxsea/custom_simulations/worlds:/root/roboboat_ws/src/galaxsea/custom_simulations/models:$GZ_SIM_RESOURCE_PATH"
+```
 
 Make sure to put your path in case it is different
 
