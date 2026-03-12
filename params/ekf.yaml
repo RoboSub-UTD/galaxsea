@@ -2,7 +2,7 @@ ekf_filter_node:
   ros__parameters:
 
     use_sim_time: true
-    debug: true
+    debug: false
     debug_out_file: /root/roboboat_ws/src/galaxsea/robot_localization_debug.txt
     frequency: 30.0
     sensor_timeout: 0.1
