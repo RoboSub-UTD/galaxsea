@@ -1,13 +1,9 @@
 ekf_filter_node:
   ros__parameters:
     use_sim_time: true
-    debug: false
-    debug_out_file: /root/roboboat_ws/src/galaxsea/robot_localization_debug.txt
     frequency: 30.0
     sensor_timeout: 0.1
-
-    two_d_mode: true   # CRITICAL for boats
-
+    two_d_mode: true
     publish_tf: true
 
     map_frame: map
@@ -15,47 +11,64 @@ ekf_filter_node:
     base_link_frame: wamv/wamv/base_link
     world_frame: odom
 
-    # =====================
-    # IMU CONFIGURATION
-    # State vector order:
-    # [x y z
-    #  roll pitch yaw
-    #  vx vy vz
-    #  vroll vpitch vyaw
-    #  ax ay az]
-    # =====================
-
+    # --- IMU ---
     imu0: /wamv/sensors/imu/imu/data
-
-    imu0_config: [false, false, false,   # position
-                  false, false, false,    # orientation (yaw only in 2D mode)
-                  false, false, false,   # linear velocity
-                  false, false, false,    # angular velocity (yaw rate)
-                  true,  true, false]   # linear accel (forward only)
-
+    imu0_config: [false, false, false,
+                  false, false, true,    # yaw
+                  false, false, false,
+                  false, false, true,    # yaw rate
+                  true,  true,  false]  # ax, ay
     imu0_differential: false
     imu0_relative: false
     imu0_remove_gravitational_acceleration: true
 
-    # =====================
-    # GPS (from navsat_transform)
-    # =====================
+    # Process noise (stable marine defaults)
+    process_noise_covariance: [0.05, 0.0 , 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                              0.0, 0.05, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                              0.0, 0.0, 0.06, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                              0.0, 0.0, 0.0, 0.03, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                              0.0, 0.0, 0.0, 0.0, 0.03, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                              0.0, 0.0, 0.0, 0.0, 0.0, 0.06, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                              0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.025, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                              0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.025, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                              0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.04, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                              0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.01, 0.0, 0.0, 0.0, 0.0, 0.0,
+                              0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.01, 0.0, 0.0, 0.0, 0.0,
+                              0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.02, 0.0, 0.0, 0.0,
+                              0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.01, 0.0, 0.0,
+                              0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.01, 0.0,
+                              0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.015]
 
-    odom0: /wamv/sensors/gps/gps/fix
-
-    odom0_config: [true,  true,  false,  
-                    false, false, false,  
-                    false, false, false,  
-                    false, false, false,  
-                    false, false, false]  
-
+    # --- GPS (from navsat_transform) ---
+    odom0: /odometry/gps                 # ← navsat output
+    odom0_config: [true,  true,  false,  # x, y position
+                   false, false, false,
+                   false, false, false,
+                   false, false, false,
+                   false, false, false]
     odom0_differential: false
     odom0_relative: false
 
-    # Process noise (stable marine defaults)
-    # process_noise_covariance: [0.05, 0.0, 0.0,  0.0, 0.0, 0.0,
-    #                            0.0, 0.05, 0.0,  0.0, 0.0, 0.0,
-    #                            0.0, 0.0, 0.1,   0.0, 0.0, 0.0,
-    #                            0.0, 0.0, 0.0,     0.01, 0.0, 0.0,
-    #                            0.0, 0.0, 0.0,     0.0, 0.01, 0.0,
-    #                            0.0, 0.0, 0.0,     0.0, 0.0, 0.02]
+
+## Data Flow Detail
+# 
+# /wamv/sensors/gps/gps/fix  (NavSatFix, lat/lon)
+#             │
+#             ▼
+#     navsat_transform_node
+#             │  needs two inputs to initialize:
+#             │  1. GPS fix (to set map origin)
+#             │  2. IMU yaw OR /odometry/filtered yaw
+#             │     (to align GPS north with robot frame)
+#             │
+#             ▼
+#     /odometry/gps  (nav_msgs/Odometry, x/y meters from origin)
+#             │
+#             ▼
+#         ekf_node  ◄── also receiving IMU directly
+#             │
+#             ▼
+#     /odometry/filtered  ──► back to navsat_transform_node
+#                             (for yaw reference, closes the loop)
+
+    

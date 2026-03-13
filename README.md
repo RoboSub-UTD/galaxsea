@@ -55,3 +55,21 @@ Make sure to put your path in case it is different
 ros2 launch vrx_gz competition.launch.py world:=task_one
 ```
 change task_one to whatever the world is called
+
+# How to run the current setup
+
+From your workspace root (`/root/roboboat_ws`), run:
+
+```shell
+ros2 launch galaxsea localization.launch.py
+```
+
+In a second terminal (after sourcing `install/setup.bash`), run:
+
+```shell
+ros2 launch slam_toolbox online_async_launch.py slam_params_file:=src/galaxsea/params/slam_params.yaml
+```
+
+`slam_toolbox` will eventually be wrapped into a GalaxSea launch file, but for now it is launched separately while the setup is still under active development.
+
+You can view the map in RViz by adding the `/map` and `/odometry/filtered` topics.
