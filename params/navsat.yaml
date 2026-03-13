@@ -1,26 +1,31 @@
-navsat_transform:
+navsat_transform_node:
   ros__parameters:
+    use_sim_time: true
 
+    # How often to publish transformed GPS
     frequency: 30.0
-    delay: 0.0
-    magnetic_declination_radians: 0.0   # Set for your region
-    yaw_offset: 0.0
 
-    zero_altitude: true
-    broadcast_utm_transform: true
+    # Delay to wait for transforms to be available
+    delay: 3.0
+
+    # Your GPS antenna offset from base_link (meters)
+    # MEASURE THIS — critical for accuracy
+    yaw_offset: 0.0        # if GPS heading != base_link heading
+    magnetic_declination_radians: 0.0  # look up for your location
+
+    # Zero out the initial GPS position so odom starts at (0,0)
+    zero_altitude: true     # important for 2D mode
+
+    # Broadcast the initial GPS fix as the map origin
+    broadcast_cartesian_transform: true        # ← renamed
     broadcast_utm_transform_as_parent_frame: false
 
-    publish_filtered_gps: true
-
-    use_odometry_yaw: false
+    # If your GPS publishes with high covariance, raise this
+    # to prevent bad fixes from corrupting the filter
+    # gps_frame_id: 'gps'
+    
     wait_for_datum: false
-
-    # Frame configuration
-    map_frame: map
-    odom_frame: odom
-    base_link_frame: wamv/wamv/base_link
-
-    # Input topics
-    imu_topic: /wamv/sensors/imu/imu/data
-    gps_topic: /wamv/sensors/gps/gps/fix
-    odom_topic: /odometry/filtered
+    
+    # Or hardcode a datum (map origin) if you want a fixed reference:
+    # datum: [lat, lon, yaw]
+    # datum: [29.6474, -82.3018, 0.0]
