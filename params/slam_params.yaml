@@ -1,6 +1,10 @@
 slam_toolbox:
   ros__parameters:
 
+    map_start_at_dock: true
+    map_update_interval: 1.0
+    map_start_pose: [0.0, 0.0, 0.0]
+
     use_sim_time: true
     slam_mode: mapping
 

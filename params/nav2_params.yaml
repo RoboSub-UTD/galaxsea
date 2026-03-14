@@ -46,15 +46,17 @@ global_costmap:
       robot_radius: 0.22
       width: 1000
       height: 1000
-      origin_x: -500.0
-      origin_y: -500.0
+      origin_x: -25.0
+      origin_y: -25.0
       track_unknown_space: true
       plugins: [static_layer, obstacle_layer, inflation_layer]
       transform_tolerance: 5.0
       always_send_full_costmap: true
       static_layer:
         plugin: nav2_costmap_2d::StaticLayer
-        map_subscribe_transient_local: true
+        map_subscribe_transient_local: false   
+        subscribe_to_updates: true             
+        map_topic: /map
       obstacle_layer:
         plugin: nav2_costmap_2d::ObstacleLayer
         enabled: true
@@ -62,8 +64,10 @@ global_costmap:
         pointcloud:
           topic: /pointcloud/filtered
           data_type: PointCloud2
+          observation_persistence: 0.0
           clearing: true
           marking: true
+          sensor_frame: wamv/wamv/base_link/lidar_wamv_sensor
           raytrace_max_range: 20.0
           obstacle_max_range: 18.0
           max_obstacle_height: 5.0
