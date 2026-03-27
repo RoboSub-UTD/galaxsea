@@ -11,6 +11,7 @@ import urllib.request
 from collections import defaultdict, deque
 from typing import Dict
 from sensor_msgs.msg import Image
+import torch
 
 class rgb:
     def __init__(self, r, g, b):
@@ -38,11 +39,11 @@ class rgb:
         else:
             return rgb(0, 0, 0)
 
-model_path = "/root/roboboat_ws/src/galaxsea26/model.pt"
+model_path = "/root/roboboat_ws/src/galaxsea/model.pt"
 
-if not os.path.exists(model_path):
-    print(f"Model not found; downloading {MODEL_URL}")
-    urllib.request.urlretrieve(MODEL_URL, model_path)
+# if not os.path.exists(model_path):
+    # print(f"Model not found; downloading {MODEL_URL}")
+    # urllib.request.urlretrieve(MODEL_URL, model_path)
 
 print("Loading model...")
 model = YOLO(model_path)
@@ -152,7 +153,7 @@ class CameraSubscriber(Node):
         # YOLO requires a square image for best accuracy.
         # ------------------------------------------------------------
         model_frame = cv2.resize(display_frame, MODEL_INPUT_DIMENSIONS)
-
+        
         # ------------------------------------------------------------
         # 4. Draw FPS on the frame
         # ------------------------------------------------------------
@@ -170,11 +171,7 @@ class CameraSubscriber(Node):
         # ------------------------------------------------------------
         # 5. Run YOLO tracking on the model-sized frame
         # ------------------------------------------------------------
-        results = model.track(model_frame, persist=True, tracker="bytetrack.yaml")
-
-        # ------------------------------------------------------------
-        # 6. Create an Annotator object to draw labels/bounding boxes
-        # ------------------------------------------------------------
+        results = model.predict(model_frame, tracker="bytetrack.yaml")
         annotator = Annotator(original_frame, line_width=1)
 
         # ------------------------------------------------------------
@@ -192,11 +189,11 @@ class CameraSubscriber(Node):
                 confidence = pred.boxes.conf[i]
 
                 # Scaled bbox from model size → display size
-                x1, y1, x2, y2 = pred.boxes[i].xyxy[0]
-                x1 *= X_SCALE_FACTOR
-                y1 *= Y_SCALE_FACTOR
-                x2 *= X_SCALE_FACTOR
-                y2 *= Y_SCALE_FACTOR
+                x1_t, y1_t, x2_t, y2_t = pred.boxes[i].xyxy[0]
+                x1 = float(x1_t) * X_SCALE_FACTOR
+                y1 = float(y1_t) * Y_SCALE_FACTOR
+                x2 = float(x2_t) * X_SCALE_FACTOR
+                y2 = float(y2_t) * Y_SCALE_FACTOR
 
                 # Draw labeled bounding box
                 label = f"{name} {int(confidence * 100)}%"
