@@ -1,0 +1,12 @@
+obstacle_type_map_node:
+  ros__parameters:
+ 
+    save_path: '/tmp/obstacle_type_map.json'
+
+    publish_rate: 1.0
+
+    dedup_radius: 0.3
+ 
+    marker_scale: 0.2
+ 
+    text_scale: 0.15

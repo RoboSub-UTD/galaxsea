@@ -24,6 +24,7 @@ setup(
         'console_scripts': [
             'boat_controller = galaxsea.boat_controller:main',
             'lidar_preprocess = galaxsea.lidar_preprocess:main',
+            'obstacle_type_map_node = galaxsea.obstacle_type_map:main',
         ],
     },
 )
