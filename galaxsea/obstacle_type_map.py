@@ -14,7 +14,7 @@ class ObstacleTypeMapNode(Node):
 
         self.declare_parameter('save_path', '/tmp/obstacle_type_map.json')
         self.declare_parameter('publish_rate', 1.0)
-        self.declare_parameter('dedup_radius', 0.3)
+        self.declare_parameter('dedup_radius', 0.15)
         self.declare_parameter('marker_scale', 0.2)
         self.declare_parameter('text_scale', 0.15)
 
@@ -72,13 +72,13 @@ class ObstacleTypeMapNode(Node):
             return True
         return False
 
-    def lookup(self, x: float, y: float, radius: float = 0.5) -> list[dict]:
+    def lookup(self, x: float, y: float) -> list[dict]:
         results = []
         for obs in self.obstacles.values():
             dx = obs['x'] - x
             dy = obs['y'] - y
             dist = (dx ** 2 + dy ** 2) ** 0.5
-            if dist <= radius:
+            if dist <= obs['radius']:
                 results.append({**obs, 'distance': dist})
         results.sort(key=lambda o: o['distance'])
         return results
