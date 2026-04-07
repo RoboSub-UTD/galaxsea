@@ -1,25 +1,14 @@
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription, SetEnvironmentVariable, TimerAction
+from launch.actions import IncludeLaunchDescription, SetEnvironmentVariable
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory
 from launch.substitutions import EnvironmentVariable
 import os
-import xacro
 
 def generate_launch_description():
-    vrx_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            os.path.join(
-                get_package_share_directory('vrx_gz'),
-                'launch',
-                'competition.launch.py'
-            )
-        )
-    )
-
     model_path = os.path.join(
-        get_package_share_directory('galaxsea26'),
+        get_package_share_directory('galaxsea'),
         'sensors',
         'urdf'
     )
@@ -27,44 +16,47 @@ def generate_launch_description():
         name='GZ_SIM_RESOURCE_PATH',
         value=[model_path, ':', EnvironmentVariable('GZ_SIM_RESOURCE_PATH')]    
     )
-    wamv_zed2_urdf = os.path.join(
-        get_package_share_directory('galaxsea26'),
+    wamv_zed2_xacro = os.path.join(
+        get_package_share_directory('galaxsea'),
         'sensors',
         'urdf',
-        'wamv_with_zed2.urdf'
+        'wamv_with_zed2.xacro'
     )
 
-    # vrx_gz_path = get_package_share_directory('vrx_gz')
-    # os.environ['ROS_PACKAGE_PATH'] = f"{vrx_gz_path}:{os.environ.get('ROS_PACKAGE_PATH', '')}"
-
-    # 🧩 Convert Xacro to SDF on the fly
-    # robot_description_config = xacro.process_file(wamv_zed2_xacro)
-    # robot_description = robot_description_config.toxml()
-    # print("test print" + os.environ['GZ_SIM_RESOURCE_PATH'])
-    # Write the expanded file to /tmp for Gazebo
-    # tmp_path = '/tmp/wamv_with_zed2.sdf'
-    # with open(tmp_path, 'w') as f:
-    #     f.write(robot_description)
-
-    spawn_combined = TimerAction(
-        period=5.0,
-        actions=[
-            Node(
-                package='ros_gz_sim',
-                executable='create',
-                output='screen',
-                arguments=[
-                    '-name', 'wamv_with_zed2',
-                    # '-world', 'vrx_2023',
-                    '-file', wamv_zed2_urdf,
-                    '-x', '0', '-y', '0', '-z', '0.1'
-                ]
+    # Let VRX run xacro with its expected arguments; pass the custom xacro path directly.
+    vrx_launch = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(
+                get_package_share_directory('vrx_gz'),
+                'launch',
+                'competition.launch.py'
             )
+        ),
+        launch_arguments={
+            'name': 'wamv',
+            'urdf': wamv_zed2_xacro,
+        }.items()
+    )
+
+    # Bridge ZED2 stereo, depth, point cloud, and IMU outputs into ROS 2 topics.
+    zed2_camera_bridge = Node(
+        package='ros_gz_bridge',
+        executable='parameter_bridge',
+        output='screen',
+        arguments=[
+            '/zed2/left/image_rect_color@sensor_msgs/msg/Image@gz.msgs.Image',
+            '/zed2/left/image_rect_color/camera_info@sensor_msgs/msg/CameraInfo@gz.msgs.CameraInfo',
+            '/zed2/right/image_rect_color@sensor_msgs/msg/Image@gz.msgs.Image',
+            '/zed2/right/image_rect_color/camera_info@sensor_msgs/msg/CameraInfo@gz.msgs.CameraInfo',
+            '/zed2/depth/depth_registered@sensor_msgs/msg/Image@gz.msgs.Image',
+            '/zed2/depth/depth_registered/camera_info@sensor_msgs/msg/CameraInfo@gz.msgs.CameraInfo',
+            '/zed2/point_cloud/cloud_registered/points@sensor_msgs/msg/PointCloud2@gz.msgs.PointCloudPacked',
+            '/zed2/imu/data@sensor_msgs/msg/Imu@gz.msgs.IMU',
         ]
     )
 
     return LaunchDescription([
         set_resource_path,
         vrx_launch,
-        spawn_combined
+        zed2_camera_bridge
     ])

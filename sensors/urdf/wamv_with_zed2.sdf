@@ -1,8 +1,0 @@
-<sdf version='1.11'>
-  <model name='wamv_with_zed2'>
-    <joint name='wamv_zed2_fixed_joint' type='fixed'>
-      <parent>wamv::base_link</parent>
-      <child>zed2_camera::zed2_link</child>
-    </joint>
-  </model>
-</sdf>

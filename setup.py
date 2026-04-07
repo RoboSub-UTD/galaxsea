@@ -1,8 +1,7 @@
 from setuptools import setup
 import os
 from glob import glob
-
-package_name = 'galaxsea26'
+package_name = 'galaxsea'
 
 setup(
     name=package_name,
@@ -11,17 +10,12 @@ setup(
     data_files=[
         ('share/ament_index/resource_index/packages', ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
-        (os.path.join('share', package_name, 'launch'), glob(os.path.join('launch', '*launch.[pxy][yma]*'))),
-        ('share/' + package_name + '/sensors/urdf', [
+        (os.path.join('share', package_name, 'launch'), glob('launch/*.py')),
+        (os.path.join('share', package_name, 'params'), glob('params/*.yaml')),
+        (os.path.join('share', package_name, 'sensors', 'urdf'), [
             'sensors/urdf/zed2_camera.xacro',
             'sensors/urdf/wamv_with_zed2.xacro',
-            'sensors/urdf/wamv_with_zed2.sdf',
-            'sensors/urdf/wamv_with_zed2.urdf',
         ]),
-        # Meshes
-        # ('share/' + package_name + '/meshes', [
-        #     'sensors/meshes/zed2_camera.dae'
-        # ]),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -32,7 +26,11 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'boat_controller = galaxsea26.boat_controller:main',
+            'boat_controller = galaxsea.boat_controller:main',
+            # 'lidar_preprocess = galaxsea.lidar_preprocess:main',
+            # 'obstacle_type_map_node = galaxsea.obstacle_type_map:main',
+            # 'obstacle_type_map_node = galaxsea.obstacle_type_map:main',
+            # 'image_processing = galaxsea.image_processing:main',
         ],
     },
 )
