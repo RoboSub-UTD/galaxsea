@@ -5,5 +5,5 @@
   <xacro:include filename="$(find galaxsea)/sensors/urdf/zed2_camera.xacro"/>
 
   <!-- Attach ZED2 into the same namespaced model tree as the canonical WAM-V -->
-  <xacro:zed2_camera parent_link="$(arg namespace)/base_link" xyz="0.3 0 1.2" rpy="0 0 0" namespace="$(arg namespace)" />
+  <xacro:zed2_camera parent_link="$(arg namespace)/base_link" xyz="1.0 0 1.7" rpy="0 0 0" namespace="$(arg namespace)" />
 </robot>

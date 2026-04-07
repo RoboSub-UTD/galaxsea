@@ -35,6 +35,7 @@ def generate_launch_description():
         launch_arguments={
             'name': 'wamv',
             'urdf': wamv_zed2_xacro,
+            'world': 'task_one'
         }.items()
     )
 
