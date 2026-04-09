@@ -8,7 +8,7 @@ def generate_launch_description():
     config = os.path.join(
         get_package_share_directory('galaxsea'),
         'params',
-        'obstacle_type_map.yaml'
+        'obstacle_type_map_params.yaml'
     )
  
     return LaunchDescription([
