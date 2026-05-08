@@ -104,7 +104,7 @@ controller_server:
       batch_size: 1000
       iteration_count: 1
       vx_max: 1.0
-      vx_min: 0.0
+      vx_min: -0.5
       wz_max: 0.3
       vy_std: 0.0
       vz_std: 0.05

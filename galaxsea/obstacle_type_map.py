@@ -6,6 +6,7 @@ from tf2_ros import Buffer, TransformListener
 import json
 import os
 import hashlib
+import math
 
 
 class ObstacleTypeMapNode(Node):
@@ -57,7 +58,9 @@ class ObstacleTypeMapNode(Node):
             elif action == "get_all":
                 res = self.get_all_request()
             elif action == "sum_distances_in_radius":
-                res = self.sum_distances_in_radius_request(req["x"], req["y"], req["radius"], req.get("label"))
+                res = self.sum_obstacle_distance_request(req["x"], req["y"], req["radius"], req.get("label"))
+            elif action == "min_cost_on_line":
+                res = self.min_cost_on_line_request(req["x1"], req["y1"], req["x2"], req["y2"], req["label"], req["size"])
             else:
                 res = {"error": f"Unknown action: {action}"}
         except Exception as e:
@@ -91,7 +94,7 @@ class ObstacleTypeMapNode(Node):
             "labels": [r[1]['label'] for r in results]
         }
     
-    def sum_obstacle_distance(self, x: float, y: float, radius: float, label: str = None) -> dict:
+    def sum_obstacle_distance_request(self, x: float, y: float, radius: float, label: str = None) -> dict:
         total = self.sum_obstacle_distance(x, y, radius, label)
         return {"total_distance": total}
 
@@ -101,6 +104,10 @@ class ObstacleTypeMapNode(Node):
 
     def get_all_request(self) -> dict:
         return {"json_data": json.dumps(self.get_all())}
+    
+    def min_cost_on_line_request(self, x1: float, y1: float, x2: float, y2: float, label: str = None, size: float = 10) -> dict:
+        t = self.min_cost_on_line(x1, x2, y1, y2, label, size)
+        return {"scalar_value": t}
 
     def add_obstacle(self, x: float, y: float, label: str, radius: float = None) -> str:
         display_radius = radius if radius is not None else self.marker_scale
@@ -155,7 +162,7 @@ class ObstacleTypeMapNode(Node):
         matches.sort(key=lambda o: (o[1]['x'] - rx) ** 2 + (o[1]['y'] - ry) ** 2)
         return matches[:n]
     
-    def sum_obstacle_dist(self, x: float, y: float, radius: float, label: str = None) -> float:
+    def sum_obstacle_distance(self, x: float, y: float, radius: float, label: str = None) -> float:
         total = 0.0
         for key, obs in self.obstacles.items():
             dx = obs['x'] - x
@@ -164,6 +171,34 @@ class ObstacleTypeMapNode(Node):
             if dist <= radius and (label is None or obs['label'] == label):
                 total += dist
         return total
+    # sum function maybe useless since when domain is straight line, function is convex => not useful information for task goal setting
+    
+    def weighted_obstacle_distance(self, x: float, y: float, label: str = None, lam: float = 1.0) -> float:
+        total = 0.0
+        for key, obs in self.obstacles.items():
+            if label is not None and obs['label'] != label:
+                continue
+            dx = obs['x'] - x
+            dy = obs['y'] - y
+            dist = (dx * dx + dy * dy) ** 0.5
+            total += math.exp(-(1/obs['radius']) * dist)
+        return total
+    # cost = e^(-lamda * distance) is exponential decay where as lambda increases, rate of decay increases
+    
+    def min_cost_on_line(self, x1: float, y1: float, x2: float, y2: float, label: str = None, size: float = 10) -> float:
+        t = 0
+        min = math.inf
+        dx = x2 - x1
+        dy = y2 - y1
+        for i in range(size + 1):
+            temp_min = self.weighted_obstacle_distance(x1 + i * (1/size) * dx, y1 + i * (1/size) * dy)
+            if temp_min < min:
+                min = temp_min
+                t = i * (1/size)
+        return t 
+    # size = size of sample along the line. 100 size means 100 points will be taken, evenly spaced across the line
+    # t is a multiple of the line where t * (direction of line) = a point on the line
+
 
     def mark_used(self, key: str):
         if key in self.obstacles:
@@ -221,6 +256,12 @@ class ObstacleTypeMapNode(Node):
             self.get_logger().warn(f'Failed to save obstacle type map: {e}')
 
     def _color_for_label(self, label: str) -> ColorRGBA:
+        LABEL_COLORS = {
+            "green_pole_buoy": ColorRGBA(r=0.0, g=0.8, b=0.0, a=0.85),
+            "red_pole_buoy":   ColorRGBA(r=0.9, g=0.0, b=0.0, a=0.85),
+        }
+        if label in LABEL_COLORS:
+            return LABEL_COLORS[label]
         h = int(hashlib.md5(label.encode()).hexdigest(), 16)
         r = ((h >> 16) & 0xFF) / 255.0
         g = ((h >> 8) & 0xFF) / 255.0
