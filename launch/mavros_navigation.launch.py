@@ -23,7 +23,7 @@ def generate_launch_description():
 
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
-                os.path.join(galaxsea, 'launch', 'nav_launch.py')
+                os.path.join(galaxsea, 'launch', 'nav2.launch.py')
             ),
             launch_arguments={
                 'thruster_params_type': 'mavros_thruster_controller',
