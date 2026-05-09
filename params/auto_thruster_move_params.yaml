@@ -17,13 +17,13 @@ mavros_thruster_controller:
     max_thrust: 1000.0
     max_linear_velocity: 1.0
     max_angular_velocity: 0.3
-    control_rate: 20.0
-    linear_pid_kp: 200.0
-    linear_pid_ki: 5.0
-    linear_pid_kd: 20.0
-    angular_pid_kp: 400.0
-    angular_pid_ki: 5.0
-    angular_pid_kd: 80.0
+    control_rate: 100.0
+    linear_pid_kp: 100.0
+    linear_pid_ki: 100.0
+    linear_pid_kd: 100.0
+    angular_pid_kp: 100.0
+    angular_pid_ki: 100.0
+    angular_pid_kd: 100.0
     sim_control: false
     l1_angle: -0.7854
     l2_angle: -2.3562

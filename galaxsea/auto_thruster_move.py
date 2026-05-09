@@ -49,19 +49,23 @@ class ThrusterController(Node):
 
         self.declare_parameter('l1_angle', -pi/4)
         self.declare_parameter('l2_angle', -3*pi/4)
-        self.declare_parameter('r1_angle', pi/4)
-        self.declare_parameter('r2_angle', 3*pi/4)
+        self.declare_parameter('r1_angle',  pi/4)
+        self.declare_parameter('r2_angle',  3*pi/4)
+
+        self.declare_parameter('l1_dist_x',  1.0)
+        self.declare_parameter('l1_dist_y',  0.5)
+        self.declare_parameter('l2_dist_x', -1.0)
+        self.declare_parameter('l2_dist_y',  0.5)
+        self.declare_parameter('r1_dist_x',  1.0)
+        self.declare_parameter('r1_dist_y', -0.5)
+        self.declare_parameter('r2_dist_x', -1.0)
+        self.declare_parameter('r2_dist_y', -0.5)
 
         self.max_thrust = self.get_parameter('max_thrust').value
         self.max_linear_velocity = self.get_parameter('max_linear_velocity').value
         self.max_angular_velocity = self.get_parameter('max_angular_velocity').value
         self.control_rate = self.get_parameter('control_rate').value
         self.sim_control = self.get_parameter('sim_control').value
-
-        self.l1_angle = self.get_parameter('l1_angle').value
-        self.l2_angle = self.get_parameter('l2_angle').value
-        self.r1_angle = self.get_parameter('r1_angle').value
-        self.r2_angle = self.get_parameter('r2_angle').value
 
         self.target_linear_velocity = 0.0
         self.target_angular_velocity = 0.0
@@ -86,9 +90,21 @@ class ThrusterController(Node):
             integral_limit=self.max_thrust * 0.2
         )
 
-        angles = [self.l1_angle, self.l2_angle, self.r1_angle, self.r2_angle]
-        A = np.array([[cos(a), sin(a)] for a in angles]).T
-        self.pseudo_inv = A.T @ np.linalg.inv(A @ A.T)
+        columns = []
+        for t in ['l1', 'l2', 'r1', 'r2']:
+            angle  = self.get_parameter(f'{t}_angle').value
+            dist_x = self.get_parameter(f'{t}_dist_x').value
+            dist_y = self.get_parameter(f'{t}_dist_y').value
+            fx     = cos(angle)
+            fy     = sin(angle)
+            torque = fx * dist_y - fy * dist_x
+            columns.append([fx, fy, torque])
+
+        A = np.array(columns).T
+        self.pseudo_inv = np.linalg.pinv(A)
+
+        self.get_logger().info(f"Allocation matrix A:\n{A}")
+        self.get_logger().info(f"Pseudo-inverse:\n{self.pseudo_inv}")
 
         self.create_subscription(Twist, 'cmd_vel', self.cmd_vel_callback, 10)
         self.create_subscription(Odometry, '/odometry/filtered', self.odom_callback, 10)
@@ -113,10 +129,9 @@ class ThrusterController(Node):
         self.current_angular_velocity = msg.twist.twist.angular.z
 
     def control_loop(self):
-        linear_error = self.target_linear_velocity - self.current_linear_velocity
+        linear_error  = self.target_linear_velocity - self.current_linear_velocity
         angular_error = self.target_angular_velocity - self.current_angular_velocity
-
-        linear_thrust = self.linear_pid.update(linear_error)
+        linear_thrust  = self.linear_pid.update(linear_error)
         angular_thrust = self.angular_pid.update(angular_error)
 
         if self.sim_control:
@@ -125,37 +140,28 @@ class ThrusterController(Node):
             self.publish_mavros(linear_thrust, angular_thrust)
 
     def publish_sim(self, linear_thrust, angular_thrust):
-        left = max(-self.max_thrust, min(self.max_thrust, linear_thrust - angular_thrust))
+        left  = max(-self.max_thrust, min(self.max_thrust, linear_thrust - angular_thrust))
         right = max(-self.max_thrust, min(self.max_thrust, linear_thrust + angular_thrust))
-
         self.left_thruster_pub.publish(Float64(data=float(left)))
         self.right_thruster_pub.publish(Float64(data=float(right)))
 
     def publish_mavros(self, linear_thrust, angular_thrust):
-        x = self.pseudo_inv @ np.array([linear_thrust, angular_thrust])
-        # x = A^+ * b
-        #the y axis for the b vector only takes into account PID rad/s, should still work ok, might need to change for more accurate results
-        
-        def to_pwm(percent_thrust):
-            pwm = 1500 + percent_thrust * 500
+        b = np.array([-1*linear_thrust, 0.0, -1*angular_thrust])
+        #currently high pwm is high thrust onto the water
+        x = self.pseudo_inv @ b
+
+        def to_pwm(v):
+            pwm = 1500 + (v / self.max_thrust) * 500
             return int(max(1000, min(2000, pwm)))
-        #pwm between 1000 and 2000 with 1500 neutral. Might need to change, just guessed
 
         msg = OverrideRCIn()
-        msg.channels[0] = to_pwm(x[0] / self.max_thrust)
-        msg.channels[1] = to_pwm(x[1] / self.max_thrust)
-        msg.channels[2] = to_pwm(x[2] / self.max_thrust)
-        msg.channels[3] = to_pwm(x[3] / self.max_thrust)
-        msg.channels[4] = 65535
-        msg.channels[5] = 65535
-        msg.channels[6] = 65535
-        msg.channels[7] = 65535
-        #65535 should make the message on that channel be ignored
-        #mapping from channel to thruster might need to change
+        msg.channels[0] = to_pwm(x[0])
+        msg.channels[1] = to_pwm(x[1])
+        msg.channels[2] = to_pwm(x[2])
+        msg.channels[3] = to_pwm(x[3])
 
         self.actuator_pub.publish(msg)
-    #solves Ax = b 
-    #x = final thrust commands, b = PID thrust values to achieve, A = matrix of thruster vectors [l1, l2, r1, r2] where each vector is [cos(angle), sin(angle)]^T
+
 
 def main(args=None):
     rclpy.init(args=args)
