@@ -24,8 +24,8 @@ def generate_launch_description():
             name='navsat_transform_node',
             parameters=[navsat_config],
             remappings=[
-                ('imu',          '/wamv/sensors/imu/imu/data'),
-                ('gps/fix',           '/wamv/sensors/gps/gps/fix'),
+                ('imu',          '/imu/raw'),
+                ('gps/fix',           '/gps/raw'),
                 ('odometry/filtered', '/odometry/filtered'),    # from EKF
             ]
         ),

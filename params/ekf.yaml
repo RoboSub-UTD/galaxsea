@@ -8,11 +8,11 @@ ekf_filter_node:
 
     map_frame: map
     odom_frame: odom
-    base_link_frame: wamv/wamv/base_link
+    base_link_frame: base_link
     world_frame: odom
 
     # --- IMU ---
-    imu0: /wamv/sensors/imu/imu/data
+    imu0: /imu/raw
     imu0_config: [false, false, false,
                   false, false, true,    # yaw
                   false, false, false,
@@ -52,7 +52,7 @@ ekf_filter_node:
 
 ## Data Flow Detail
 # 
-# /wamv/sensors/gps/gps/fix  (NavSatFix, lat/lon)
+# /gps/raw  (NavSatFix, lat/lon)
 #             │
 #             ▼
 #     navsat_transform_node
