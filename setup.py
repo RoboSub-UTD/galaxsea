@@ -28,6 +28,8 @@ setup(
             'obstacle_type_map_node = galaxsea.obstacle_type_map:main',
             'image_processing = galaxsea.image_processing:main',
             'auto_thruster_move = galaxsea.auto_thruster_move:main',
+            'no_pid_auto_thrust = galaxsea.no_pid_auto_thrust:main',
+
         ],
     },
 )

@@ -1,87 +1,85 @@
-import rclpy
-from rclpy.node import Node
-# from geometry_msgs.msg._twist import Twist
-
-from std_msgs.msg._float64 import Float64
 import curses
 from curses import wrapper
+
+import rclpy
+from rclpy.node import Node
+from geometry_msgs.msg import Twist
 
 
 class ControllerPublisher(Node):
     def __init__(self):
         super().__init__("boat_controller_pub")
-        self.left_pub = self.create_publisher(
-            Float64, "/wamv/thrusters/left/thrust", 10
-        )
-        self.right_pub = self.create_publisher(
-            Float64, "/wamv/thrusters/right/thrust", 10
-        )
+        self.cmd_vel_pub = self.create_publisher(Twist, "/cmd_vel", 10)
 
     def controller(self, stdscr):
-        left = Float64()
-        right = Float64()
+        msg = Twist()
 
-        # Create static info menu
         stdscr.clear()
         stdscr.addstr(0, 0, "-----------------------------")
         stdscr.addstr(1, 0, "Moving around:")
         stdscr.addstr(2, 0, "Control boat")
-        stdscr.addstr(3, 0, "       w      ")
+        stdscr.addstr(3, 0, "   q   w   e  ")
         stdscr.addstr(4, 0, "   a   s   d  ")
         stdscr.addstr(5, 0, "       x      ")
         stdscr.addstr(6, 0, " ")
-        stdscr.addstr(7, 0, "w/x: increase linear velocity")
-        stdscr.addstr(8, 0, "a/d: increase angular velocity")
+        stdscr.addstr(7, 0, "w/x/a/d: increase linear velocity")
+        stdscr.addstr(8, 0, "q/e: increase angular velocity")
         stdscr.addstr(9, 0, "s: stop")
         stdscr.addstr(10, 0, " ")
         stdscr.addstr(11, 0, "Press Ctrl C to exit")
-        stdscr.move(12, 0)
         stdscr.refresh()
+        output_win = curses.newwin(1, 80, 12, 0)
 
-        # Create window with updating movement info
-        output_win = curses.newwin(0, 0, 12, 0)
+        def show_status():
+            output_win.clear()
+            output_win.addstr(
+                0, 0,
+                f"currently:   Linear_x: {msg.linear.x:.2f}  "
+                f"Linear_y: {msg.linear.y:.2f}  "
+                f"Angular: {msg.angular.z:.2f}",
+            )
+            output_win.refresh()
+
+        show_status()
 
         while True:
             try:
-                input = stdscr.getkey()
-                match input:
-                    case "w":
-                        left.data += 10
-                        right.data += 10
-                    case "a":
-                        left.data -= 10
-                        right.data += 10
-                    case "s":
-                        left.data = 0.0
-                        right.data = 0.0
-                    case "d":
-                        left.data += 10
-                        right.data -= 10
-                    case "x":
-                        left.data -= 10
-                        right.data -= 10
-                output_win.clear()
-                output_win.addstr(
-                    f"currently:   left: {left.data}  right: {right.data}"
-                )
-                output_win.refresh()
-
+                key = output_win.getkey()
             except KeyboardInterrupt:
-                left.data = 0.0
-                right.data = 0.0
                 break
+            except curses.error:
+                continue
 
-            self.left_pub.publish(left)
-            self.right_pub.publish(right)
+            match key:
+                case "w":
+                    msg.linear.x += 1.0
+                case "x":
+                    msg.linear.x -= 1.0
+                case "a":
+                    msg.linear.y += 1.0
+                case "d":
+                    msg.linear.y -= 1.0
+                case "q":
+                    msg.angular.z -= 0.5
+                case "e":
+                    msg.angular.z += 0.5
+                case "s":
+                    msg.linear.x = msg.linear.y = msg.angular.z = 0.0
+
+            self.cmd_vel_pub.publish(msg)
+            show_status()
+
+        self.cmd_vel_pub.publish(Twist())
 
 
 def main(args=None):
     rclpy.init(args=args)
-
     ctrl_pub = ControllerPublisher()
-    wrapper(ctrl_pub.controller)
-
-    ctrl_pub.destroy_node()
+    try:
+        wrapper(ctrl_pub.controller)
+    finally:
+        ctrl_pub.destroy_node()
+        rclpy.shutdown()
 
 
 if __name__ == "__main__":
